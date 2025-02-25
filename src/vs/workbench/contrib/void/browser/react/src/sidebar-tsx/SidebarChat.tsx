@@ -826,15 +826,22 @@ const ChatBubble = ({ chatMessage, isLoading, messageIdx }: { chatMessage: ChatM
 		}
 	}
 	else if (role === 'assistant') {
-		const thread = chatThreadsService.getCurrentThread()
+		console.log("ChatBubble - Assistant message rendering, messageIdx:", messageIdx); // Add log: Assistant message rendering starts
+		const thread = chatThreadsService.getCurrentThread();
+		console.log("ChatBubble - getCurrentThread() result:", thread); // Add log: Result of getCurrentThread()
 
-		const chatMessageLocation: ChatMessageLocation = {
-			threadId: thread.id,
-			messageIdx: messageIdx!,
+		if (!thread || !thread.id) { // Check if thread and thread.id exist
+			console.warn("ChatBubble: thread or thread.id is undefined, cannot create chatMessageLocation", { thread, messageIdx });
+			chatbubbleContents = <ChatMarkdownRender string={chatMessage.displayContent ?? ''} />; // Do not pass chatMessageLocation
+		} else {
+			const chatMessageLocation: ChatMessageLocation = {
+				threadId: thread.id,
+				messageIdx: messageIdx!,
+			};
+			chatbubbleContents = <ChatMarkdownRender string={chatMessage.displayContent ?? ''} chatMessageLocation={chatMessageLocation} />;
 		}
-
-		chatbubbleContents = <ChatMarkdownRender string={chatMessage.displayContent ?? ''} chatMessageLocation={chatMessageLocation} />
 	}
+
 	else if (role === 'tool') {
 
 		const ToolComponent = toolResultToComponent[chatMessage.name] as ({ message }: { message: any }) => React.ReactNode // ts isnt smart enough to deal with the types here...
